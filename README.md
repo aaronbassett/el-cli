@@ -20,7 +20,7 @@ $ npm install -g el
 $ el COMMAND
 running command...
 $ el (--version)
-el/0.0.0 darwin-arm64 node-v23.10.0
+el/0.0.1 darwin-arm64 node-v23.10.0
 $ el --help [COMMAND]
 USAGE
   $ el COMMAND
@@ -29,9 +29,17 @@ USAGE
 <!-- usagestop -->
 # Commands
 <!-- commands -->
-* [`el hello PERSON`](#el-hello-person)
-* [`el hello world`](#el-hello-world)
+* [`el autocomplete [SHELL]`](#el-autocomplete-shell)
+* [`el commands`](#el-commands)
 * [`el help [COMMAND]`](#el-help-command)
+* [`el kb create file [FILE]`](#el-kb-create-file-file)
+* [`el kb create text TEXT`](#el-kb-create-text-text)
+* [`el kb del [IDCSV]`](#el-kb-del-idcsv)
+* [`el knowledgebase create file [FILE]`](#el-knowledgebase-create-file-file)
+* [`el knowledgebase create text TEXT`](#el-knowledgebase-create-text-text)
+* [`el knowledgebase create url URL`](#el-knowledgebase-create-url-url)
+* [`el knowledgebase delete [IDCSV]`](#el-knowledgebase-delete-idcsv)
+* [`el knowledgebase list url [URL]`](#el-knowledgebase-list-url-url)
 * [`el plugins`](#el-plugins)
 * [`el plugins add PLUGIN`](#el-plugins-add-plugin)
 * [`el plugins:inspect PLUGIN...`](#el-pluginsinspect-plugin)
@@ -42,48 +50,68 @@ USAGE
 * [`el plugins uninstall [PLUGIN]`](#el-plugins-uninstall-plugin)
 * [`el plugins unlink [PLUGIN]`](#el-plugins-unlink-plugin)
 * [`el plugins update`](#el-plugins-update)
+* [`el user config`](#el-user-config)
+* [`el version`](#el-version)
 
-## `el hello PERSON`
+## `el autocomplete [SHELL]`
 
-Say hello
+Display autocomplete installation instructions.
 
 ```
 USAGE
-  $ el hello PERSON -f <value>
+  $ el autocomplete [SHELL] [-r]
 
 ARGUMENTS
-  PERSON  Person to say hello to
+  SHELL  (zsh|bash|powershell) Shell type
 
 FLAGS
-  -f, --from=<value>  (required) Who is saying hello
+  -r, --refresh-cache  Refresh cache (ignores displaying instructions)
 
 DESCRIPTION
-  Say hello
+  Display autocomplete installation instructions.
 
 EXAMPLES
-  $ el hello friend --from oclif
-  hello friend from oclif! (./src/commands/hello/index.ts)
+  $ el autocomplete
+
+  $ el autocomplete bash
+
+  $ el autocomplete zsh
+
+  $ el autocomplete powershell
+
+  $ el autocomplete --refresh-cache
 ```
 
-_See code: [src/commands/hello/index.ts](https://github.com/aaronbassett/el-cli/blob/v0.0.0/src/commands/hello/index.ts)_
+_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v3.2.33/src/commands/autocomplete/index.ts)_
 
-## `el hello world`
+## `el commands`
 
-Say hello world
+List all el commands.
 
 ```
 USAGE
-  $ el hello world
+  $ el commands [--json] [-c id|plugin|summary|type... | --tree] [--deprecated] [-x | ] [--hidden]
+    [--no-truncate | ] [--sort id|plugin|summary|type | ]
+
+FLAGS
+  -c, --columns=<option>...  Only show provided columns (comma-separated).
+                             <options: id|plugin|summary|type>
+  -x, --extended             Show extra columns.
+      --deprecated           Show deprecated commands.
+      --hidden               Show hidden commands.
+      --no-truncate          Do not truncate output.
+      --sort=<option>        [default: id] Property to sort by.
+                             <options: id|plugin|summary|type>
+      --tree                 Show tree of commands.
+
+GLOBAL FLAGS
+  --json  Format output as json.
 
 DESCRIPTION
-  Say hello world
-
-EXAMPLES
-  $ el hello world
-  hello world! (./src/commands/hello/world.ts)
+  List all el commands.
 ```
 
-_See code: [src/commands/hello/world.ts](https://github.com/aaronbassett/el-cli/blob/v0.0.0/src/commands/hello/world.ts)_
+_See code: [@oclif/plugin-commands](https://github.com/oclif/plugin-commands/blob/v4.1.29/src/commands/commands.ts)_
 
 ## `el help [COMMAND]`
 
@@ -104,6 +132,306 @@ DESCRIPTION
 ```
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.2.31/src/commands/help.ts)_
+
+## `el kb create file [FILE]`
+
+Create a knowledge base document from the supplied file
+
+```
+USAGE
+  $ el kb create file [FILE] [--json] [-n <value>] [--base-path <value>]
+
+ARGUMENTS
+  FILE  file to create a knowledge base document from
+
+FLAGS
+  -n, --name=<value>       optional name for the knowledge base document
+      --base-path=<value>  base path to start the file selector from
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Create a knowledge base document from the supplied file
+
+ALIASES
+  $ el kb create file
+
+EXAMPLES
+  $ el kb create file "./test.pdf"
+
+  If not file is supplied, you will be prompted to select a file
+
+    $ el kb create file
+```
+
+## `el kb create text TEXT`
+
+Create a knowledge base document from the supplied text
+
+```
+USAGE
+  $ el kb create text TEXT [--json] [-n <value>]
+
+ARGUMENTS
+  TEXT  text to create a knowledge base document from
+
+FLAGS
+  -n, --name=<value>  optional name for the knowledge base document
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Create a knowledge base document from the supplied text
+
+ALIASES
+  $ el kb create text
+
+EXAMPLES
+  $ el kb create text "This is a test"
+```
+
+## `el kb del [IDCSV]`
+
+Delete knowledge base documents
+
+```
+USAGE
+  $ el kb del [IDCSV] [--json] [-A] [-y] [-I <value>] [-E <value>] [-p] [-c] [-t text|file|url...] [-o]
+    [--ignore-dependent-agents]
+
+ARGUMENTS
+  IDCSV  comma separated list of ids of the knowledge base documents to delete
+
+FLAGS
+  -A, --all                      delete all documents
+  -E, --name-excludes=<value>    delete documents that do not contain this string in the name
+  -I, --name-includes=<value>    delete documents that contain this string in the name
+  -c, --continue-on-error        continue deleting next document on error
+  -o, --only-owned               delete only documents owned by the current user
+  -p, --include-partial          include partial id matches
+  -t, --type=<option>...         type of document to delete
+                                 <options: text|file|url>
+  -y, --yes-confirm              skip additional confirmation
+      --ignore-dependent-agents  delete documents even if they have dependent agents
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Delete knowledge base documents
+
+ALIASES
+  $ el kb del
+
+EXAMPLES
+  $ el kb del "LZ3PBN,U1CbRY,jUJmvZ"
+
+  $ el kb del --name-includes "test"
+
+  Be careful with --name-includes, it is simple sub-string match and suffers from the Scunthorpe problem.
+
+    $ el kb del --name-includes "test" --name-excludes "testimonial"
+
+  Delete all documents belonging to the current user without confirmation
+
+    $ el kb del -Ayo
+
+  Delete all documents belonging to the current user without confirmation, even if they have dependent agents
+
+    $ el kb del -Ayo --ignore-dependent-agents
+
+  Do not stop if a document fails to delete, continue onto the next document
+
+    $ el kb del --continue-on-error "LZ3PBN,U1CbRY,jUJmvZ"
+
+  Delete documents of type url or text with matching ids
+
+    $ el kb del --type url text -- "LZ3PBN,U1CbRY,jUJmvZ"
+```
+
+## `el knowledgebase create file [FILE]`
+
+Create a knowledge base document from the supplied file
+
+```
+USAGE
+  $ el knowledgebase create file [FILE] [--json] [-n <value>] [--base-path <value>]
+
+ARGUMENTS
+  FILE  file to create a knowledge base document from
+
+FLAGS
+  -n, --name=<value>       optional name for the knowledge base document
+      --base-path=<value>  base path to start the file selector from
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Create a knowledge base document from the supplied file
+
+ALIASES
+  $ el kb create file
+
+EXAMPLES
+  $ el knowledgebase create file "./test.pdf"
+
+  If not file is supplied, you will be prompted to select a file
+
+    $ el knowledgebase create file
+```
+
+_See code: [src/commands/knowledgebase/create/file.ts](https://github.com/aaronbassett/el-cli/blob/v0.0.1/src/commands/knowledgebase/create/file.ts)_
+
+## `el knowledgebase create text TEXT`
+
+Create a knowledge base document from the supplied text
+
+```
+USAGE
+  $ el knowledgebase create text TEXT [--json] [-n <value>]
+
+ARGUMENTS
+  TEXT  text to create a knowledge base document from
+
+FLAGS
+  -n, --name=<value>  optional name for the knowledge base document
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Create a knowledge base document from the supplied text
+
+ALIASES
+  $ el kb create text
+
+EXAMPLES
+  $ el knowledgebase create text "This is a test"
+```
+
+_See code: [src/commands/knowledgebase/create/text.ts](https://github.com/aaronbassett/el-cli/blob/v0.0.1/src/commands/knowledgebase/create/text.ts)_
+
+## `el knowledgebase create url URL`
+
+Create a knowledge base document from the supplied url
+
+```
+USAGE
+  $ el knowledgebase create url URL [--json] [-n <value>]
+
+ARGUMENTS
+  URL  url to create a knowledge base document from
+
+FLAGS
+  -n, --name=<value>  optional name for the knowledge base document
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Create a knowledge base document from the supplied url
+
+ALIASES
+  $ el kb create text
+
+EXAMPLES
+  $ el knowledgebase create url "https://www.example.com"
+```
+
+_See code: [src/commands/knowledgebase/create/url.ts](https://github.com/aaronbassett/el-cli/blob/v0.0.1/src/commands/knowledgebase/create/url.ts)_
+
+## `el knowledgebase delete [IDCSV]`
+
+Delete knowledge base documents
+
+```
+USAGE
+  $ el knowledgebase delete [IDCSV] [--json] [-A] [-y] [-I <value>] [-E <value>] [-p] [-c] [-t text|file|url...] [-o]
+    [--ignore-dependent-agents]
+
+ARGUMENTS
+  IDCSV  comma separated list of ids of the knowledge base documents to delete
+
+FLAGS
+  -A, --all                      delete all documents
+  -E, --name-excludes=<value>    delete documents that do not contain this string in the name
+  -I, --name-includes=<value>    delete documents that contain this string in the name
+  -c, --continue-on-error        continue deleting next document on error
+  -o, --only-owned               delete only documents owned by the current user
+  -p, --include-partial          include partial id matches
+  -t, --type=<option>...         type of document to delete
+                                 <options: text|file|url>
+  -y, --yes-confirm              skip additional confirmation
+      --ignore-dependent-agents  delete documents even if they have dependent agents
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Delete knowledge base documents
+
+ALIASES
+  $ el kb del
+
+EXAMPLES
+  $ el knowledgebase delete "LZ3PBN,U1CbRY,jUJmvZ"
+
+  $ el knowledgebase delete --name-includes "test"
+
+  Be careful with --name-includes, it is simple sub-string match and suffers from the Scunthorpe problem.
+
+    $ el knowledgebase delete --name-includes "test" --name-excludes "testimonial"
+
+  Delete all documents belonging to the current user without confirmation
+
+    $ el knowledgebase delete -Ayo
+
+  Delete all documents belonging to the current user without confirmation, even if they have dependent agents
+
+    $ el knowledgebase delete -Ayo --ignore-dependent-agents
+
+  Do not stop if a document fails to delete, continue onto the next document
+
+    $ el knowledgebase delete --continue-on-error "LZ3PBN,U1CbRY,jUJmvZ"
+
+  Delete documents of type url or text with matching ids
+
+    $ el knowledgebase delete --type url text -- "LZ3PBN,U1CbRY,jUJmvZ"
+```
+
+_See code: [src/commands/knowledgebase/delete.ts](https://github.com/aaronbassett/el-cli/blob/v0.0.1/src/commands/knowledgebase/delete.ts)_
+
+## `el knowledgebase list url [URL]`
+
+Search the knowledge base for the supplied url
+
+```
+USAGE
+  $ el knowledgebase list url [URL] [--json] [-n <value>]
+
+ARGUMENTS
+  URL  url to search for in the knowledge base
+
+FLAGS
+  -n, --name=<value>  optional name to filter the results by
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Search the knowledge base for the supplied url
+
+ALIASES
+  $ el kb create text
+
+EXAMPLES
+  $ el knowledgebase list url "https://www.example.com"
+```
+
+_See code: [src/commands/knowledgebase/list/url.ts](https://github.com/aaronbassett/el-cli/blob/v0.0.1/src/commands/knowledgebase/list/url.ts)_
 
 ## `el plugins`
 
@@ -394,4 +722,53 @@ DESCRIPTION
 ```
 
 _See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v5.4.45/src/commands/plugins/update.ts)_
+
+## `el user config`
+
+Manage user configuration file
+
+```
+USAGE
+  $ el user config [-c] [-f] [-e <value>] [-d]
+
+FLAGS
+  -c, --create-new      Create a new configuration file
+  -d, --open-directory  Open the configuration directory
+  -e, --editor=<value>  Open config file with specified editor
+  -f, --force           Force overwrite existing configuration file
+
+DESCRIPTION
+  Manage user configuration file
+
+EXAMPLES
+  $ el user config
+
+  $ el user config --create-new
+
+  $ el user config --editor cursor
+
+  $ el user config --open-directory
+```
+
+_See code: [src/commands/user/config.ts](https://github.com/aaronbassett/el-cli/blob/v0.0.1/src/commands/user/config.ts)_
+
+## `el version`
+
+```
+USAGE
+  $ el version [--json] [--verbose]
+
+FLAGS
+  --verbose  Show additional information about the CLI.
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+FLAG DESCRIPTIONS
+  --verbose  Show additional information about the CLI.
+
+    Additionally shows the architecture, node version, operating system, and versions of plugins that the CLI is using.
+```
+
+_See code: [@oclif/plugin-version](https://github.com/oclif/plugin-version/blob/v2.2.31/src/commands/version.ts)_
 <!-- commandsstop -->
