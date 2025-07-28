@@ -8,6 +8,8 @@ CLI Wrapper around the Elevenlabs API
 [![Version](https://img.shields.io/npm/v/el.svg)](https://npmjs.org/package/el)
 [![Downloads/week](https://img.shields.io/npm/dw/el.svg)](https://npmjs.org/package/el)
 
+![Screencast](./el-demo.gif)
+
 
 <!-- toc -->
 * [Usage](#usage)
