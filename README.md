@@ -32,9 +32,11 @@ USAGE
 * [`el autocomplete [SHELL]`](#el-autocomplete-shell)
 * [`el commands`](#el-commands)
 * [`el help [COMMAND]`](#el-help-command)
+* [`el kb backup`](#el-kb-backup)
 * [`el kb create file [FILE]`](#el-kb-create-file-file)
 * [`el kb create text TEXT`](#el-kb-create-text-text)
 * [`el kb del [IDCSV]`](#el-kb-del-idcsv)
+* [`el knowledgebase backup`](#el-knowledgebase-backup)
 * [`el knowledgebase create file [FILE]`](#el-knowledgebase-create-file-file)
 * [`el knowledgebase create text TEXT`](#el-knowledgebase-create-text-text)
 * [`el knowledgebase create url URL`](#el-knowledgebase-create-url-url)
@@ -132,6 +134,71 @@ DESCRIPTION
 ```
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.2.31/src/commands/help.ts)_
+
+## `el kb backup`
+
+Backup all knowledge base documents to a local directory
+
+```
+USAGE
+  $ el kb backup [--json] [-o <value>] [-M] [--no-index] [--date-format <value>] [-n <value>] [-e
+    replace|keep-both|skip|error] [-d <value>] [-m <value>]
+
+FLAGS
+  -M, --merge                  merge all documents into a single file
+  -d, --delay=<value>          [default: 500] delay between API requests in milliseconds
+  -e, --file-exists=<option>   [default: keep-both] action to take if the file already exists.
+                               <options: replace|keep-both|skip|error>
+  -m, --max-documents=<value>  [default: 50] maximum number of documents to fetch
+  -n, --name=<value>           [default: {{id}}] document filename template. Available variables: {{id}} {{name}}
+                               {{type}}
+  -o, --output-dir=<value>     output directory to save the documents to
+      --date-format=<value>    [default: yyyy-MM-dd] date format to use for the output directory. Uses date-fns. Set to
+                               "0" to disable
+      --no-index               do not create an index file
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Backup all knowledge base documents to a local directory
+
+ALIASES
+  $ el kb backup
+
+EXAMPLES
+  Backup all knowledge base documents to current directory
+
+    $ el kb backup
+
+  Backup all knowledge base documents to a custom directory
+
+    $ el kb backup --output-dir ./knowledgebase-backup
+
+  Use document name as filename
+
+    $ el kb backup --name "{{name}}"
+
+  Replace documents with the same name
+
+    $ el kb backup --file-exists replace
+
+  Error if documents with the same name
+
+    $ el kb backup --file-exists error
+
+  Don't create an index file
+
+    $ el kb backup --no-index
+
+  Merge all documents into a single file
+
+    $ el kb backup --merge
+
+  Hammer their API (this is mean, don't do it)
+
+    $ el kb backup --delay 0
+```
 
 ## `el kb create file [FILE]`
 
@@ -250,6 +317,73 @@ EXAMPLES
 
     $ el kb del --type url text -- "LZ3PBN,U1CbRY,jUJmvZ"
 ```
+
+## `el knowledgebase backup`
+
+Backup all knowledge base documents to a local directory
+
+```
+USAGE
+  $ el knowledgebase backup [--json] [-o <value>] [-M] [--no-index] [--date-format <value>] [-n <value>] [-e
+    replace|keep-both|skip|error] [-d <value>] [-m <value>]
+
+FLAGS
+  -M, --merge                  merge all documents into a single file
+  -d, --delay=<value>          [default: 500] delay between API requests in milliseconds
+  -e, --file-exists=<option>   [default: keep-both] action to take if the file already exists.
+                               <options: replace|keep-both|skip|error>
+  -m, --max-documents=<value>  [default: 50] maximum number of documents to fetch
+  -n, --name=<value>           [default: {{id}}] document filename template. Available variables: {{id}} {{name}}
+                               {{type}}
+  -o, --output-dir=<value>     output directory to save the documents to
+      --date-format=<value>    [default: yyyy-MM-dd] date format to use for the output directory. Uses date-fns. Set to
+                               "0" to disable
+      --no-index               do not create an index file
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Backup all knowledge base documents to a local directory
+
+ALIASES
+  $ el kb backup
+
+EXAMPLES
+  Backup all knowledge base documents to current directory
+
+    $ el knowledgebase backup
+
+  Backup all knowledge base documents to a custom directory
+
+    $ el knowledgebase backup --output-dir ./knowledgebase-backup
+
+  Use document name as filename
+
+    $ el knowledgebase backup --name "{{name}}"
+
+  Replace documents with the same name
+
+    $ el knowledgebase backup --file-exists replace
+
+  Error if documents with the same name
+
+    $ el knowledgebase backup --file-exists error
+
+  Don't create an index file
+
+    $ el knowledgebase backup --no-index
+
+  Merge all documents into a single file
+
+    $ el knowledgebase backup --merge
+
+  Hammer their API (this is mean, don't do it)
+
+    $ el knowledgebase backup --delay 0
+```
+
+_See code: [src/commands/knowledgebase/backup.ts](https://github.com/aaronbassett/el-cli/blob/v0.0.1/src/commands/knowledgebase/backup.ts)_
 
 ## `el knowledgebase create file [FILE]`
 
