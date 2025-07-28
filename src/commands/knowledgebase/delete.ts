@@ -1,15 +1,11 @@
 import { checkbox } from '@inquirer/prompts';
 import { Args, Command, Flags } from '@oclif/core';
+import { Presets, SingleBar } from "cli-progress";
 import * as R from "remeda";
+import colors from 'yoctocolors';
+import type { Document } from '../../types/knowledgebase.js';
 import { getElevenLabsApiKey } from '../../utils/elevenlabs.js';
-
-type Document = {
-  id: string
-  name: string
-  type: string
-  isCreator: boolean
-  hasDependentAgents: boolean
-}
+import { getDocumentList } from '../../utils/knowledgebase.js';
 
 export default class KnowledgebaseDelete extends Command {
   static override aliases = ['kb:del']
@@ -52,29 +48,7 @@ export default class KnowledgebaseDelete extends Command {
     type: Flags.string({char: 't', description: 'type of document to delete', options: ['text', 'file', 'url'], multiple: true}),
     "only-owned": Flags.boolean({char: 'o', description: 'delete only documents owned by the current user'}),
     "ignore-dependent-agents": Flags.boolean({description: 'delete documents even if they have dependent agents'}),
-  }
-
-  private async getAllDocuments({elevenLabsApiKey}: {elevenLabsApiKey: string}): Promise<Document[]> {
-    // !NOTE: Endpoint 500s when sending cursor qs param, so we'e limited to only deleting 100 docs at a time.
-    const response = await fetch("https://api.elevenlabs.io/v1/convai/knowledge-base?page_size=100", {
-      method: "GET",
-      headers: {
-        "xi-api-key": elevenLabsApiKey,
-      },
-    });
-
-    const body = await response.json()
-    if (response.ok) {
-      return body.documents.map((doc: any) => ({
-        id: doc.id,
-        name: doc.name,
-        type: doc.type,
-        isCreator: doc.access_info.is_creator,
-        hasDependentAgents: doc.dependent_agents.length > 0,
-      }))
-    } else {
-      this.error(JSON.stringify(body), { exit: 1 })
-    }
+    "delay": Flags.string({char: 'd', description: 'delay between API requests in milliseconds', default: "500"}),
   }
 
   public async run(): Promise<{ deletedCount: number, failedCount: number }> {
@@ -85,17 +59,16 @@ export default class KnowledgebaseDelete extends Command {
     }
 
     let ids = args.idCsv?.split(',') ?? []
-    const allDocuments = await this.getAllDocuments({elevenLabsApiKey})
+    const allDocuments = await getDocumentList({elevenLabsApiKey, delay: parseInt(flags["delay"])})
     let filteredDocuments: Document[] = []
 
     /*
-    * Why do we always get all documents? For a few reasons.
-    * 1. The KB list endpoint does have a search param, but:
-    *   - It can only search by name starts with.
-    *   - It ignores it anyway…
-    * 2. The get document endpoint doesn't return the dependent agents
+    * Why do we get all documents, even if the user has specified individual ids?
+    * The get document endpoint doesn't return the dependent agents.
+    * For each doc we'd have to make a separate request to the dependent agents endpoint.
+    * Each doc would require two requests, one to get the doc, and one to get the dependent agents.
+    * User would have to have 200+ docs and only be deleting one for all docs to be less efficient.
     */
-
     if(flags.all) {
         // If all is set we ignore the other filters and just get all docs.
         filteredDocuments = allDocuments
@@ -117,7 +90,7 @@ export default class KnowledgebaseDelete extends Command {
     }
 
     if(flags['only-owned']) {
-      filteredDocuments = filteredDocuments.filter(doc => doc.isCreator)
+      filteredDocuments = filteredDocuments.filter(doc => doc.access_info.is_creator)
     }
 
     // No docs to delete, exit with code 0.
@@ -145,17 +118,18 @@ export default class KnowledgebaseDelete extends Command {
     }
 
     // Do any of the selected docs have dependent agents?
-    const hasDependentAgents = filteredDocuments.filter(doc => doc.hasDependentAgents)
-    if(hasDependentAgents.length > 0 && !flags["ignore-dependent-agents"]) {
+    const hasDependentAgents = (doc: Document) => doc.dependent_agents && doc.dependent_agents.length > 0
+    const withDependentAgents = filteredDocuments.filter(doc => hasDependentAgents(doc))
+    if(withDependentAgents.length > 0 && !flags["ignore-dependent-agents"]) {
       const confirmedWithDependentAgents = await checkbox({
         message: `The following documents have dependent agents. Are you sure you want to delete them?`,
-        choices: hasDependentAgents.map(doc => ({
+        choices: withDependentAgents.map(doc => ({
           name: doc.name,
           value: doc.id,
           checked: true,
         })),
       })
-      filteredDocuments = filteredDocuments.filter(doc => !doc.hasDependentAgents || confirmedWithDependentAgents.includes(doc.id))
+      filteredDocuments = filteredDocuments.filter(doc => !hasDependentAgents(doc) || confirmedWithDependentAgents.includes(doc.id))
     }
 
     // No docs to delete, exit with code 0.
@@ -167,6 +141,16 @@ export default class KnowledgebaseDelete extends Command {
     // We can finally start deleting the docs.
     let deletedCount = 0
     let failedCount = 0
+
+     const progress = new SingleBar({
+      hideCursor: true,
+      clearOnComplete: true,
+      format: 'Deleting: ' + colors.red('{bar}') + ' {percentage}% | {value}/{total} (' + colors.red('{failedCount}') + ' failed) | ETA: ' + colors.cyan('{eta_formatted}') + ' | Elapsed: ' + colors.bold('{duration_formatted}'),
+      barCompleteChar: '\u25B0',
+      barIncompleteChar: '\u25B1',
+    }, Presets.shades_grey);
+
+    progress.start(filteredDocuments.length, 0, {failedCount})
 
     for(const doc of filteredDocuments) {
       const response = await fetch(`https://api.elevenlabs.io/v1/convai/knowledge-base/${doc.id}?force=true`, {
@@ -184,6 +168,9 @@ export default class KnowledgebaseDelete extends Command {
         }
         failedCount++
       }
+      progress.increment()
+      progress.update({failedCount})
+      await new Promise(resolve => setTimeout(resolve, parseInt(flags["delay"])))
     }
 
     this.log(`Deleted ${deletedCount} documents`)
